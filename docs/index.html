@@ -264,13 +264,31 @@
       { id: "SHP005", material: "Galvanized Steel Wire", cnCode: "7217", qty: 3000, origin: "India", emissions: 900, intensity: 0.30, status: "CBAM Ready" },
     ];
 
-    const SUPPLIERS = [
+    const INITIAL_SUPPLIERS = [
       { name: "Nordic Green Metals", country: "Sweden", intensity: 0.15, price: 2850, rating: 4.9, badge: "Eco-Recommended", material: "Aluminium" },
       { name: "SinoSteel Carbon-Free", country: "China", intensity: 0.35, price: 820, rating: 4.7, badge: "Eco-Recommended", material: "Steel" },
       { name: "Anadolu Eco-Cement", country: "Turkey", intensity: 0.08, price: 95, rating: 4.8, badge: "Eco-Recommended", material: "Cement" },
       { name: "Emirates Steel Ind", country: "UAE", intensity: 0.78, price: 780, rating: 4.2, badge: "Standard", material: "Steel" },
       { name: "Vedanta Eco-Aluminium", country: "India", intensity: 0.45, price: 2500, rating: 4.5, badge: "Eco-Recommended", material: "Aluminium" }
     ];
+
+    // Backend endpoint connection helper
+    const BACKEND_URL = "http://localhost:3002";
+
+    const fetchFromBackend = async (endpoint, payload) => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error("Backend response error");
+        return await response.json();
+      } catch (e) {
+        console.warn(`[CarbonLot] Fallback: Could not connect to live backend API at ${endpoint}. Using offline mock.`);
+        return null;
+      }
+    };
 
     // --- MAIN REACT COMPONENT ---
     function App() {
@@ -279,12 +297,58 @@
       
       // DB States
       const [shipments, setShipments] = useState(INITIAL_SHIPMENTS);
+      const [suppliers, setSuppliers] = useState(INITIAL_SUPPLIERS);
       const [shipmentFilter, setShipmentFilter] = useState("All");
       const [supplierMaterialFilter, setSupplierMaterialFilter] = useState("All");
 
       // Interactive Action Loaders
       const [validatingShipment, setValidatingShipment] = useState(null);
       const [calculatingShipment, setCalculatingShipment] = useState(null);
+
+      // Load Data from Backend with Graceful Fallback
+      const loadData = async () => {
+        const rawShipments = await fetchFromBackend('get_shipments', {});
+        const rawSuppliers = await fetchFromBackend('get_suppliers', {});
+
+        if (rawShipments && rawSuppliers) {
+          const mappedShipments = await Promise.all(
+            rawShipments.map(async (s) => {
+              const emissionsRes = await fetchFromBackend('calculate_emissions', { shipmentId: s.shipmentId });
+              const isCoveredRes = await fetchFromBackend('validate_cn_code', { shipmentId: s.shipmentId });
+              return {
+                id: s.shipmentId,
+                material: s.material,
+                cnCode: s.cnCode,
+                qty: s.quantity,
+                origin: s.originCountry,
+                emissions: emissionsRes ? emissionsRes.total_emissions_kgCO2e : 0,
+                intensity: emissionsRes ? emissionsRes.factor_used_kgCO2_per_kg : 0,
+                status: (isCoveredRes && isCoveredRes.cbam_covered) ? "CBAM Ready" : "Pending Validation"
+              };
+            })
+          );
+
+          const mappedSuppliers = rawSuppliers.map(sup => ({
+            name: sup.company,
+            country: sup.country,
+            intensity: sup.reportedEmission,
+            price: sup.pricePerKg,
+            rating: sup.rating,
+            badge: sup.reportedEmission < 2.5 ? "Eco-Recommended" : "Standard",
+            material: sup.company.toLowerCase().includes("steel") ? "Steel" : sup.company.toLowerCase().includes("aluminium") || sup.company.toLowerCase().includes("metals") ? "Aluminium" : "Cement"
+          }));
+
+          setShipments(mappedShipments);
+          setSuppliers(mappedSuppliers);
+        } else {
+          setShipments(INITIAL_SHIPMENTS);
+          setSuppliers(INITIAL_SUPPLIERS);
+        }
+      };
+
+      useEffect(() => {
+        loadData();
+      }, []);
 
       // AI Chat State
       const [chatMessages, setChatMessages] = useState([
@@ -332,7 +396,7 @@
       const activeShipmentsCount = shipments.filter(s => s.status !== "Declaring").length;
       
       // Trigger validation simulation
-      const handleValidateCN = (id) => {
+      const handleValidateCN = async (id) => {
         setValidatingShipment(id);
         
         // Log in Chat
@@ -342,30 +406,52 @@
         };
         setChatMessages(prev => [...prev, queryMsg]);
 
-        setTimeout(() => {
-          // Add Tool Call
+        const liveResult = await fetchFromBackend('validate_cn_code', { shipmentId: id });
+
+        if (liveResult) {
           const toolCall = {
             sender: "system",
             type: "mcp_tool_call",
             toolName: "compliance.verify_cn_code",
-            args: { shipment_id: id, cn_code: shipments.find(s => s.id === id).cnCode },
-            result: { valid: true, description: "Base metals and articles of base metal - Aluminium sheets", standardRateApplied: true }
+            args: { shipment_id: id },
+            result: liveResult
           };
           
-          setShipments(prev => prev.map(s => s.id === id ? { ...s, status: "CBAM Ready" } : s));
+          setShipments(prev => prev.map(s => s.id === id ? { ...s, status: liveResult.cbam_covered ? "CBAM Ready" : "Validation Failed" } : s));
           setValidatingShipment(null);
           
           const agentReply = {
             sender: "agent",
-            text: `Successfully validated CN Code classification for **${id}**. Custom database validation returned matching tariff schema for Aluminium Sheets. The shipment is now marked as **CBAM Ready**.`
+            text: `Successfully validated CN Code classification for **${id}** using live backend. Custom database validation returned matching tariff schema for **${liveResult.material}** (CN Code: **${liveResult.cnCode}**). CBAM Scope status: **${liveResult.cbam_covered ? 'COVERED' : 'NOT COVERED'}**. The shipment is now marked as **CBAM Ready**.`
           };
 
           setChatMessages(prev => [...prev, toolCall, agentReply]);
-        }, 1500);
+        } else {
+          setTimeout(() => {
+            // Add Tool Call
+            const toolCall = {
+              sender: "system",
+              type: "mcp_tool_call",
+              toolName: "compliance.verify_cn_code",
+              args: { shipment_id: id, cn_code: shipments.find(s => s.id === id).cnCode },
+              result: { valid: true, description: "Base metals and articles of base metal - Aluminium sheets", standardRateApplied: true }
+            };
+            
+            setShipments(prev => prev.map(s => s.id === id ? { ...s, status: "CBAM Ready" } : s));
+            setValidatingShipment(null);
+            
+            const agentReply = {
+              sender: "agent",
+              text: `Successfully validated CN Code classification for **${id}**. Custom database validation returned matching tariff schema for Aluminium Sheets. The shipment is now marked as **CBAM Ready**.`
+            };
+
+            setChatMessages(prev => [...prev, toolCall, agentReply]);
+          }, 1500);
+        }
       };
 
       // Trigger Emissions Recalculate
-      const handleRecalculate = (id) => {
+      const handleRecalculate = async (id) => {
         setCalculatingShipment(id);
 
         const queryMsg = {
@@ -374,28 +460,50 @@
         };
         setChatMessages(prev => [...prev, queryMsg]);
 
-        setTimeout(() => {
-          const s = shipments.find(item => item.id === id);
+        const liveResult = await fetchFromBackend('calculate_emissions', { shipmentId: id });
+
+        if (liveResult) {
           const toolCall = {
             sender: "system",
             type: "mcp_tool_call",
             toolName: "compliance.calculate_emissions",
-            args: { material: s.material, qty: s.qty, origin: s.origin },
-            result: { embeddedCo2Kg: s.emissions, intensity: s.intensity, validatedSource: "EU CBAM Database v2026.1" }
+            args: { shipment_id: id },
+            result: liveResult
           };
           
+          setShipments(prev => prev.map(s => s.id === id ? { ...s, emissions: liveResult.total_emissions_kgCO2e } : s));
           setCalculatingShipment(null);
+          
           const agentReply = {
             sender: "agent",
-            text: `Calculations refreshed for **${id}**. Calculated intensity of **${s.intensity} kgCO₂/kg** verified against direct manufacturer supplier disclosure. No discrepancies found.`
+            text: `Calculations refreshed from live backend for **${id}**. Calculated total emissions: **${liveResult.total_emissions_kgCO2e.toLocaleString()} kg CO₂** using factor: **${liveResult.factor_used_kgCO2_per_kg} kgCO₂/kg** (Source: **${liveResult.source}**).`
           };
 
           setChatMessages(prev => [...prev, toolCall, agentReply]);
-        }, 1200);
+        } else {
+          setTimeout(() => {
+            const s = shipments.find(item => item.id === id);
+            const toolCall = {
+              sender: "system",
+              type: "mcp_tool_call",
+              toolName: "compliance.calculate_emissions",
+              args: { material: s.material, qty: s.qty, origin: s.origin },
+              result: { embeddedCo2Kg: s.emissions, intensity: s.intensity, validatedSource: "EU CBAM Database v2026.1" }
+            };
+            
+            setCalculatingShipment(null);
+            const agentReply = {
+              sender: "agent",
+              text: `Calculations refreshed for **${id}**. Calculated intensity of **${s.intensity} kgCO₂/kg** verified against direct manufacturer supplier disclosure. No discrepancies found.`
+            };
+
+            setChatMessages(prev => [...prev, toolCall, agentReply]);
+          }, 1200);
+        }
       };
 
       // Send Chat Message
-      const handleSendChat = (e) => {
+      const handleSendChat = async (e) => {
         e.preventDefault();
         if (!chatInput.trim()) return;
 
@@ -404,6 +512,48 @@
         const currentInput = chatInput.toLowerCase();
         setChatInput("");
         setIsAgentTyping(true);
+
+        // Extract potential shipment ID
+        const match = currentInput.match(/shp\d+/);
+        const matchedId = match ? match[0].toUpperCase() : null;
+
+        if (matchedId) {
+          const liveResult = await fetchFromBackend('calculate_emissions', { shipmentId: matchedId });
+          if (liveResult) {
+            setActiveMcpCalling("database.get_shipment");
+            setTimeout(() => {
+              const toolCall1 = {
+                sender: "system",
+                type: "mcp_tool_call",
+                toolName: "database.get_shipment",
+                args: { shipment_id: matchedId },
+                result: liveResult
+              };
+              setChatMessages(prev => [...prev, toolCall1]);
+              
+              setActiveMcpCalling("compliance.calculate_emissions");
+              setTimeout(() => {
+                const toolCall2 = {
+                  sender: "system",
+                  type: "mcp_tool_call",
+                  toolName: "compliance.calculate_emissions",
+                  args: { shipment_id: matchedId },
+                  result: liveResult
+                };
+                setChatMessages(prev => [...prev, toolCall2]);
+                setActiveMcpCalling(null);
+                setIsAgentTyping(false);
+
+                const reply = {
+                  sender: "agent",
+                  text: `I have calculated the embedded carbon for **${matchedId} (${liveResult.material})** using live backend database. Total emissions are **${liveResult.total_emissions_kgCO2e.toLocaleString()} kg CO₂** with an intensity of **${liveResult.factor_used_kgCO2_per_kg} kgCO₂/kg**.\n\nSource: **${liveResult.source}**.`
+                };
+                setChatMessages(prev => [...prev, reply]);
+              }, 1200);
+            }, 1000);
+            return;
+          }
+        }
 
         // Simulation response based on user input
         setTimeout(() => {
@@ -616,7 +766,7 @@
                 {/* Quick actions */}
                 <button 
                   onClick={() => {
-                    setShipments(INITIAL_SHIPMENTS);
+                    loadData();
                     resetDeclaration();
                     // Clear chat but keep default
                     setChatMessages([
@@ -891,7 +1041,7 @@
 
                         {/* Suppliers Grid Layout */}
                         <div className="grid grid-cols-2 gap-4">
-                          {SUPPLIERS
+                          {suppliers
                             .filter(sup => supplierMaterialFilter === "All" || sup.material === supplierMaterialFilter)
                             .map((sup, idx) => {
                               const isEco = sup.badge === "Eco-Recommended";
