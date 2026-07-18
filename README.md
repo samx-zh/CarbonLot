@@ -65,9 +65,11 @@ Then connect via [NitroStudio](https://nitrostack.ai/studio) or your preferred M
 The emissions and supplier dataset used here is a realistic, hand-modelled sample (not a live ERP/ ecosystem integration) — built to demonstrate the full compliance-agent workflow end-to-end within the hackathon timeframe. Emission factor values should be verified against official CBAM implementing regulation tables before any real-world use.
 
 ## Team
-Built by 
-N Samiksha
-Krishna Jayakumar
-Kashyap S
-Muhanned Jasimkhan JL
-for MCP Hackathon 2026.
+
+Built for MCP Hackathon 2026 by:
+
+- N Samiksha
+- Krishna Jayakumar
+- Kashyap S
+- Muhanned Jasimkhan JL
+
