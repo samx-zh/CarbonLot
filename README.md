@@ -22,20 +22,23 @@ Built for the Manufacturing & Industry 4.0 Track — MCP Hackathon 2026.
 - 🚩 **Flags fallback cases transparently** — shipments with unregistered/unreported suppliers are explicitly marked as needing review, not silently defaulted
 - 📄 **Generates CBAM declarations** — auto-drafts a structured compliance document per shipment, ready for export documentation
 
-## Project Structure
+## Project structure
+
+```
 src/
 ├── data/
-│   ├── shipments.json          # Shipment records (CN code, quantity, supplier, origin)
-│   ├── suppliers.json          # Supplier-reported emissions, pricing, delivery data
-│   └── emission_factors.json   # EU CBAM default emission factors by CN code
+│   ├── shipments.json        # Shipment records (CN code, quantity, supplier, origin)
+│   ├── suppliers.json        # Supplier-reported emissions, pricing, delivery data
+│   └── emission_factors.json # EU CBAM default emission factors by CN code
 ├── modules/
 │   └── carbon/
-│       ├── carbon.tools.ts       # validate_cn_code, lookup_emission_factor,
-│       │                         # calculate_emissions, generate_declaration
-│       ├── carbon.resources.ts   # Exposes shipments/suppliers/emission-factors as MCP resources
-│       └── carbon.module.ts      # Registers the carbon module
-├── app.module.ts                 # Root application module
+│       ├── carbon.tools.ts     # validate_cn_code, lookup_emission_factor,
+│       │                       # calculate_emissions, generate_declaration
+│       ├── carbon.resources.ts # Exposes shipments/suppliers/emission-factors as MCP resources
+│       └── carbon.module.ts    # Registers the carbon module
+├── app.module.ts             # Root application module
 └── index.ts
+```
 
 ## MCP Architecture
 
