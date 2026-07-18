@@ -1,0 +1,98 @@
+[
+  {
+    "shipmentId": "SHP001",
+    "cnCode": "7207",
+    "material": "Steel Billets",
+    "supplierId": "SUP001",
+    "quantity": 1000,
+    "unit": "kg",
+    "originCountry": "India",
+    "transportMode": "Truck",
+    "distanceKm": 250,
+    "arrivalDate": "2026-07-18"
+  },
+  {
+    "shipmentId": "SHP002",
+    "cnCode": "7606",
+    "material": "Aluminium Sheets",
+    "supplierId": "SUP002",
+    "quantity": 500,
+    "unit": "kg",
+    "originCountry": "Germany",
+    "transportMode": "Ship",
+    "distanceKm": 8200,
+    "arrivalDate": "2026-07-19"
+  },
+  {
+    "shipmentId": "SHP003",
+    "cnCode": "7214",
+    "material": "Steel Bars",
+    "supplierId": "SUP003",
+    "quantity": 750,
+    "unit": "kg",
+    "originCountry": "China",
+    "transportMode": "Ship",
+    "distanceKm": 5400,
+    "arrivalDate": "2026-07-20"
+  },
+  {
+    "shipmentId": "SHP004",
+    "cnCode": "7408",
+    "material": "Copper Wire",
+    "supplierId": "SUP004",
+    "quantity": 600,
+    "unit": "kg",
+    "originCountry": "Japan",
+    "transportMode": "Air",
+    "distanceKm": 6200,
+    "arrivalDate": "2026-07-21"
+  },
+  {
+    "shipmentId": "SHP005",
+    "cnCode": "3901",
+    "material": "Plastic Granules",
+    "supplierId": "SUP005",
+    "quantity": 1200,
+    "unit": "kg",
+    "originCountry": "Singapore",
+    "transportMode": "Ship",
+    "distanceKm": 3600,
+    "arrivalDate": "2026-07-22"
+  },
+  {
+    "shipmentId": "SHP006",
+    "cnCode": "7208",
+    "material": "Hot Rolled Steel Coils",
+    "supplierId": "SUP006",
+    "quantity": 1800,
+    "unit": "kg",
+    "originCountry": "UAE",
+    "transportMode": "Train",
+    "distanceKm": 700,
+    "arrivalDate": "2026-07-23"
+  },
+  {
+    "shipmentId": "SHP007",
+    "cnCode": "7601",
+    "material": "Aluminium Ingots",
+    "supplierId": "SUP007",
+    "quantity": 950,
+    "unit": "kg",
+    "originCountry": "South Korea",
+    "transportMode": "Ship",
+    "distanceKm": 5800,
+    "arrivalDate": "2026-07-24"
+  },
+  {
+    "shipmentId": "SHP008",
+    "cnCode": "7403",
+    "material": "Refined Copper",
+    "supplierId": "SUP008",
+    "quantity": 850,
+    "unit": "kg",
+    "originCountry": "Sweden",
+    "transportMode": "Ship",
+    "distanceKm": 7600,
+    "arrivalDate": "2026-07-25"
+  }
+]

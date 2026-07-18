@@ -1,0 +1,50 @@
+[
+  {
+    "cnCode": "7207",
+    "material": "Steel Billets",
+    "emissionFactor": 2.30,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7214",
+    "material": "Steel Bars",
+    "emissionFactor": 2.10,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7606",
+    "material": "Aluminium Sheets",
+    "emissionFactor": 8.60,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7408",
+    "material": "Copper Wire",
+    "emissionFactor": 4.10,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "3901",
+    "material": "Plastic Granules",
+    "emissionFactor": 2.80,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7208",
+    "material": "Hot Rolled Steel Coils",
+    "emissionFactor": 2.45,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7601",
+    "material": "Aluminium Ingots",
+    "emissionFactor": 8.20,
+    "unit": "kgCO2/kg"
+  },
+  {
+    "cnCode": "7403",
+    "material": "Refined Copper",
+    "emissionFactor": 3.95,
+    "unit": "kgCO2/kg"
+  }
+]

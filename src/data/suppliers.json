@@ -1,0 +1,74 @@
+[
+  {
+    "supplierId": "SUP001",
+    "company": "GreenSteel India",
+    "country": "India",
+    "reportedEmission": 2.05,
+    "deliveryDays": 2,
+    "pricePerKg": 72,
+    "rating": 4.8
+  },
+  {
+    "supplierId": "SUP002",
+    "company": "Euro Aluminium",
+    "country": "Germany",
+    "reportedEmission": 7.90,
+    "deliveryDays": 8,
+    "pricePerKg": 145,
+    "rating": 4.6
+  },
+  {
+    "supplierId": "SUP003",
+    "company": "Dragon Steel",
+    "country": "China",
+    "reportedEmission": 2.75,
+    "deliveryDays": 12,
+    "pricePerKg": 65,
+    "rating": 4.2
+  },
+  {
+    "supplierId": "SUP004",
+    "company": "Nippon Copper Works",
+    "country": "Japan",
+    "reportedEmission": 3.20,
+    "deliveryDays": 6,
+    "pricePerKg": 128,
+    "rating": 4.7
+  },
+  {
+    "supplierId": "SUP005",
+    "company": "EcoPoly Plastics",
+    "country": "Singapore",
+    "reportedEmission": 2.40,
+    "deliveryDays": 5,
+    "pricePerKg": 95,
+    "rating": 4.5
+  },
+  {
+    "supplierId": "SUP006",
+    "company": "Emirates Metals",
+    "country": "UAE",
+    "reportedEmission": 2.90,
+    "deliveryDays": 7,
+    "pricePerKg": 110,
+    "rating": 4.4
+  },
+  {
+    "supplierId": "SUP007",
+    "company": "Korea Industrial Steel",
+    "country": "South Korea",
+    "reportedEmission": 2.15,
+    "deliveryDays": 9,
+    "pricePerKg": 84,
+    "rating": 4.9
+  },
+  {
+    "supplierId": "SUP008",
+    "company": "Nordic Green Metals",
+    "country": "Sweden",
+    "reportedEmission": 1.85,
+    "deliveryDays": 10,
+    "pricePerKg": 120,
+    "rating": 5.0
+  }
+]
